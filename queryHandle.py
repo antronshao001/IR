@@ -4,24 +4,30 @@ import codecs
 import numpy, scipy.sparse
 import pickle
 
+queryfile = '/Users/anthony/Desktop/Courses/IR/program 1/queries/query-train.xml'
+modeldir = '/Users/anthony/Desktop/Courses/IR/program 1/model/'
+
 # tfidf calculation function definition (BM25)
 # test stop list = dict((k,v) for k,v in termDf.items() if v>30000)
 # 20000 remove 180 common terms, 30000 remove 58 terms, 40000 remove 12 terms
 def tfidf(tf,df,doclen):
-    k = 1.5  #from wiki
+    k = 1.8 #from wiki
     n = 46972.0  # dataset
     tempTf = (k + 1.0) * tf / (tf + k)
+    if df > 10000: tempIdf=0  # remove stop term
+    else: tempIdf = numpy.log((n-df+0.5)/(df+0.5))
     return tempTf
 
 qType = ['number','title','question','narrative','concepts']  # query information type
 qw = [0, 1.0, 1.0, 1.0, 1.0]  # query information type weight
 
 # open vocab for term mapping
-with codecs.open('/Users/anthony/Desktop/Courses/IR/program 1/model/vocab.all','r',encoding='utf-8') as files:
+with codecs.open(modeldir+'vocab.all','r',encoding='utf-8') as files:
     vocab = files.read().split('\n')
 
 # convert vocabs list to term mapping list(int list)
 def convertString(strings):
+    # convert string to int list
     index=0
     indexList = []
     while index < len(strings):
@@ -37,7 +43,7 @@ def convertString(strings):
         index+=shift
     return indexList
 
-# extract query into format int dict
+# extract query into format string dict
 def exQuery(filename):
     # open query html format
     with codecs.open(filename) as file:
@@ -104,8 +110,7 @@ def SimilarityToDoc(indexList):
     result = weightMat * qweightMat
     return result
 
-filename = '/Users/anthony/Desktop/Courses/IR/program 1/queries/query-train.xml'
-queryDict, numList = exQuery(filename)
+queryDict, numList = exQuery(queryfile)
 scoreMat=[]
 for num in numList:
     tempScore = SimilarityToDoc(convertString(queryDict[(num,qType[1])])) * qw[1]
@@ -117,7 +122,7 @@ topScore = [score.argsort()[-100:][::-1] for score in scoreMat]  # [::-1] revers
 
 
 # open file-list to an array
-with open('/Users/anthony/Desktop/Courses/IR/program 1/model/file-list','r') as files:
+with open(modeldir+'file-list','r') as files:
     fList = files.read().split('\n')
 fList = [string[-15:].lower() for string in fList]
 
@@ -174,5 +179,3 @@ for i in range(len(numList)):
 # set no-hit hit index to 101
 print MAP
 
-
-# output txt

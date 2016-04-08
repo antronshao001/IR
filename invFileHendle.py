@@ -5,6 +5,8 @@ import copy
 import numpy, scipy.sparse
 import pickle
 
+modeldir = '/Users/anthony/Desktop/Courses/IR/program 1/model/'
+
 class invDoc:
     def __init__(self,docFrequency,fileCount=[]):
         self.df = docFrequency
@@ -12,17 +14,17 @@ class invDoc:
 
 # tfidf calculation function definition (BM25)
 def tfidf(tf,df,doclen):
-    k = 1.5  #from wiki
+    k = 1.8  #from wiki
     b = 0.75
-    avgdoc = 54.0  # calculated from sparseArray[:,2].sum()/len(invFileList)
+    avgdoc = 756.63  # calculated from sparseArray[:,2].sum()/len(invFileList)
     n = 46972.0  # dataset
     tempTf = (k + 1.0) * tf / (tf + k * (1.0 - b + b * doclen / avgdoc))
-    if df > 30000: tempIdf=0  # remove stop term
+    if df > 10000: tempIdf=0  # remove stop term
     else: tempIdf = numpy.log((n-df+0.5)/(df+0.5))
     return tempTf * tempIdf
 
 # open inv-file to a consult index dict
-with codecs.open('/Users/anthony/Desktop/Courses/IR/program 1/model/inverted-file','r',encoding='utf-8') as files:
+with codecs.open(modeldir+'inverted-file','r',encoding='utf-8') as files:
     invFile = files.read().split('\n')
     invFileList = {}  # inverse file dict {(word1,word2):invDoc}
     termIndex = []  # term index table for consulting
@@ -45,7 +47,7 @@ with codecs.open('/Users/anthony/Desktop/Courses/IR/program 1/model/inverted-fil
             print 'error at line'+str(line)
 
 # open file-list to an array
-with open('/Users/anthony/Desktop/Courses/IR/program 1/model/file-list','r') as files:
+with open(modeldir+'file-list','r') as files:
     fList = files.read().split('\n')
     if len(fList[-1]) < 2: del fList[-1]
 

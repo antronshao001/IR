@@ -4,25 +4,26 @@ import codecs
 import numpy, scipy.sparse
 import pickle
 
+outfile = '/Users/anthony/Desktop/Courses/IR/program 1/queries/ans_out'
+queryfile = '/Users/anthony/Desktop/Courses/IR/program 1/queries/query-test.xml'
+modeldir = '/Users/anthony/Desktop/Courses/IR/program 1/model/'
+
 # tfidf calculation function definition (BM25)
 # test stop list = dict((k,v) for k,v in termDf.items() if v>30000)
 # 20000 remove 180 common terms, 30000 remove 58 terms, 40000 remove 12 terms
 def tfidf(tf,df,doclen):
-    k = 1.8  #from wiki
-    b = 0.75
-    avgdoc = 54.0  # calculated from sparseArray[:,2].sum()/len(invFileList)
-    doclen = 54.0  # set query lence to non relevent
+    k = 1.8 #from wiki
     n = 46972.0  # dataset
-    tempTf = (k + 1.0) * tf / (tf + k * (1.0 - b + b * doclen / avgdoc))
-    if df > 20000: tempIdf=0  # remove stop term
-    else: tempIdf = numpy.log(n/df)
-    return tempTf * tempIdf
+    tempTf = (k + 1.0) * tf / (tf + k)
+    if df > 10000: tempIdf=0  # remove stop term
+    else: tempIdf = numpy.log((n-df+0.5)/(df+0.5))
+    return tempTf
 
 qType = ['number','title','question','narrative','concepts']  # query information type
-qw = [0, 1.0, 1.0, 1.0, 2.0]  # query information type weight
+qw = [0, 1.0, 1.0, 1.0, 1.0]  # query information type weight
 
 # open vocab for term mapping
-with codecs.open('/Users/anthony/Desktop/Courses/IR/program 1/model/vocab.all','r',encoding='utf-8') as files:
+with codecs.open(modeldir+'vocab.all','r',encoding='utf-8') as files:
     vocab = files.read().split('\n')
 
 # convert vocabs list to term mapping list(int list)
@@ -109,8 +110,7 @@ def SimilarityToDoc(indexList):
     result = weightMat * qweightMat
     return result
 
-filename = '/Users/anthony/Desktop/Courses/IR/program 1/queries/query-test.xml'
-queryDict, numList = exQuery(filename)
+queryDict, numList = exQuery(queryfile)
 scoreMat=[]
 for num in numList:
     tempScore = SimilarityToDoc(convertString(queryDict[(num,qType[1])])) * qw[1]
@@ -121,7 +121,7 @@ for num in numList:
 topScore = [score.argsort()[-100:][::-1] for score in scoreMat]  # [::-1] reverse the array
 
 # open file-list to an array
-with open('/Users/anthony/Desktop/Courses/IR/program 1/model/file-list','r') as files:
+with open(modeldir+'file-list','r') as files:
     fList = files.read().split('\n')
 fList = [string[-15:].lower() for string in fList]
 
@@ -131,5 +131,5 @@ for i in range(len(topScore)):
     for fileIndex in topScore[i]:
         output.append(numList[i]+' '+fList[fileIndex]+'\n')
 
-with open('/Users/anthony/Desktop/Courses/IR/program 1/queries/ans_out','w') as files:
+with open(outfile,'w') as files:
     files.writelines(output)

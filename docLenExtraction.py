@@ -3,10 +3,13 @@ import codecs
 from pyquery import PyQuery as pyq
 import pickle
 
-with open('/Users/anthony/Desktop/Courses/IR/program 1/model/file-list','r') as files:
+nctirdir = '/Users/anthony/Desktop/Courses/IR/program 1/'
+modeldir = '/Users/anthony/Desktop/Courses/IR/program 1/model/'
+
+with open(modeldir+'file-list','r') as files:
     fList = files.read().split('\n')
 
-fList = ['/Users/anthony/Desktop/Courses/IR/program 1/'+fileName for fileName in fList if fileName]
+fList = [nctirdir+fileName for fileName in fList if fileName]
 
 df=[]
 for fileIndex in range(len(fList)):
